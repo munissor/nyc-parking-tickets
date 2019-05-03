@@ -1,0 +1,16 @@
+{
+  "name": "import",
+  "version": "1.0.0",
+  "description": "Imports csv files into the DB",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parse": "^4.4.1",
+    "moment": "^2.24.0",
+    "stream-transform": "^2.0.0"
+  }
+}
