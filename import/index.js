@@ -1,8 +1,10 @@
-const fs = require('fs');
-const parse = require('csv-parse');
-const moment = require('moment');
-const transform = require('stream-transform');
+'use strict';
 
+const fs = require('fs');
+const Promise = require('bluebird');
+const csv2 = require('csv2');
+const through2 = require('through2');
+const service = require('./service');
 const field = {
   SUMMONS_NUMBER: 0,
   PLATE_NUMBER: 1,
@@ -46,135 +48,163 @@ const field = {
   VIOLATION_DESCRIPTION: 39,
   VIOLATION_NO_STANDING_OR_STOPPING: 40,
   VIOLATION_HYDRANT: 41,
-  VIOLATION_DOUBLE_PARKING: 42,
+  VIOLATION_DOUBLE_PARKING: 42
 };
-
-// Street Code1            0
-// Street Code2            0
-// Street Code3            0
-// Vehicle Expiration Date 0,
-// Violation Location      ,
-// Violation Precinct      0,
-// Issuer Precinct         0,
-// Issuer Code             0,
-// Issuer Command          ,
-// Issuer Squad            ,
-// Violation Time          0143A,
-// Time First Observed     ,
-// Violation County        BX,
-// Violation In FOO        ,
-// House Number            ,
-// Street Name             ALLERTON AVE (W/B) @,
-// Intersecting Street     BARNES AVE,
-// Date First Observed     0,
-// Law Section             1111,
-// Sub Division            D,
-// Violation Legal Code    T,
-// Days Parking In Effect  ,
-// From Hours In Effect    ,
-// To Hours In Effect      ,
-// Vehicle Color           GY,
-// Unregistered Vehicle?   ,
-// Vehicle Year            2001,
-// Meter Number            ,
-// Feet From Curb          0,
-// Violation Post Code     ,
-// Violation Description   FAILURE TO STOP AT RED LIGHT,
-// No Standing or Stopping Violation ,
-// Hydrant Violation ,
-// Double Parking Violation
-
-
-const parser = parse({
-  delimiter: ','
-});
-
-const plateCache = {};
 
 const nullableValues = {
   '': true,
-  '0': true
+  // eslint-disable-next-line quote-props
+  '0': true,
+  '-': true
 };
-function getFieldWithNullableValue(record, field) {
-  const val = record[field];
+
+function getFieldWithNullableValue(record, f) {
+  const val = record[f];
   const nil = nullableValues[val];
   return nil ? null : val;
 }
 
-function getPlate(record) {
-  let plate = plateCache[record[field.PLATE_NUMBER]];
-  if (!plate) {
-    plate = {
-      number: record[field.PLATE_NUMBER],
-      registrationState: record[field.PLATE_REG_STATE],
-      type: record[field.PLATE_TYPE],
-      issueDate: moment(record[field.PLATE_ISSUE_DATE], 'MM/DD/YYYY'),
-    }
-    //plateCache[plate.number] = plate;
+function getFrontOfOpposite(value) {
+  const res = (value || '').toUpperCase();
+  if (res === 'F' || res === 'O') {
+    return res;
   }
-  return plate;
+  return null;
 }
 
-const transformer = transform(function (record, callback) {
-  if (record[field.SUMMONS_NUMBER] === "Summons Number")
-    return;
+function getPlate(record) {
+  return {
+    number: record[field.PLATE_NUMBER],
+    registrationState: record[field.PLATE_REG_STATE],
+    type: record[field.PLATE_TYPE]
+  };
+}
 
-  callback(null, {
-    summonsNumber: record[field.SUMMONS_NUMBER],
-    plate: getPlate(record),
-    violationCode: Number(record[field.VIOLATION_CODE]),
-    vehicleBodyType: record[field.VEHICLE_BODY_TYPE],
-    vehicleMake: record[field.VEHICLE_MAKE],
-    issuingAgency: record[field.ISSUING_AGENCY],
-    streetCode1: getFieldWithNullableValue(record, field.STREET_CODE_1),
-    streetCode2: getFieldWithNullableValue(record, field.STREET_CODE_2),
-    streetCode3: getFieldWithNullableValue(record, field.STREET_CODE_3),
-    vehicleExpirationDate: getFieldWithNullableValue(record, field.VEHICLE_EXPIRATION_DATE),
-    violationLocation: getFieldWithNullableValue(record, field.VIOLATION_LOCATION),
-    violationPrecinct: getFieldWithNullableValue(record, field.VIOLATION_PRECINCT),
-    issuerPrecinct: getFieldWithNullableValue(record, field.ISSUER_PRECINCT),
-    issuerCode: getFieldWithNullableValue(record, field.ISSUER_CODE),
-    issuerCommand: getFieldWithNullableValue(record, field.ISSUER_COMMAND),
-    issuerSquad: getFieldWithNullableValue(record, field.ISSUER_SQUAD),
-    violationTime: getFieldWithNullableValue(record, field.VIOLATION_TIME),
-    timeFirstObserved: getFieldWithNullableValue(record, field.TIME_FIRST_OBSERVED),
-    violationCounty: record[field.VIOLATION_COUNTY],
-    violationInFrontOrOpposite: getFieldWithNullableValue(record, field.VIOLATION_IN_FRONT_OR_OPPOSITE),
-    houseNumber: getFieldWithNullableValue(record, field.houseNumber),
-    streetName: record[field.STREET_NAME],
-    streetIntersecting: record[field.STREET_INTERSECTING],
-    dateFirstObserved: getFieldWithNullableValue(record, field.DATE_FIRST_OBSERVED),
-    lawSection: record[field.LAW_SECTION],
-    subDivision: record[field.LAW_SUB_DIVISION],
-    violationLegalCode: record[field.VIOLATION_LEGAL_CODE],
-    daysParkingInEffect: getFieldWithNullableValue(field.DAYS_PARKING_IN_EFFECT),
-    fromHoursInEffect: getFieldWithNullableValue(record, field.FROM_HOURS_IN_EFFECT),
-    toHoursInEffect: getFieldWithNullableValue(record, field.TO_HOURS_IN_EFFECT),
-    vehicleColor: record[field.VEHICLE_COLOR],
-    vehicleUnregistered: getFieldWithNullableValue(record, field.VEHICLE_UNREGISTERED),
-    vehicleYear: record[field.VEHICLE_YEAR],
-    meterNumber: getFieldWithNullableValue(record, field.METER_NUMBER),
-    feetFromCurb: Number(record[field.FEET_FROM_CURB]),
-    violationPostCode: getFieldWithNullableValue(record, field.VIOLATION_POST_CODE),
-    violationDescription: record[field.VIOLATION_DESCRIPTION],
-    violationNoStandingOrStopping: getFieldWithNullableValue(record, field.VIOLATION_NO_STANDING_OR_STOPPING),
-    violationHydrant: getFieldWithNullableValue(record, field.VIOLATION_HYDRANT),
-    violationDoubleParking: getFieldWithNullableValue(record, field.VIOLATION_DOUBLE_PARKING)
-  });
-});
-
-transformer.on('data', function (data) {
-  // TODO: save to DB
-  console.log(data.summonsNumber);
-})
-
-if (process.argv.length != 3) {
+if (process.argv.length !== 3) {
+  // eslint-disable-next-line no-console
   console.log('Usage: import [file]');
 }
 else {
   const file = process.argv[2];
+  // eslint-disable-next-line no-console
   console.log(`Importing ${file}`);
 
-  const stream = fs.createReadStream(file);
-  stream.pipe(parser).pipe(transformer);
+  fs.createReadStream(file)
+    .pipe(csv2())
+    .pipe(through2.obj(function (record, enc, callback) {
+      if (record[field.SUMMONS_NUMBER] === 'Summons Number') {
+        callback();
+        return;
+      }
+
+      const data = {
+        summonsNumber: record[field.SUMMONS_NUMBER],
+        plate: getPlate(record),
+        issueDate: record[field.PLATE_ISSUE_DATE],
+        violationCode: Number(record[field.VIOLATION_CODE]),
+        vehicleBodyType: record[field.VEHICLE_BODY_TYPE],
+        vehicleMake: record[field.VEHICLE_MAKE],
+        issuingAgency: record[field.ISSUING_AGENCY],
+        streetCode1: getFieldWithNullableValue(record, field.STREET_CODE_1),
+        streetCode2: getFieldWithNullableValue(record, field.STREET_CODE_2),
+        streetCode3: getFieldWithNullableValue(record, field.STREET_CODE_3),
+        vehicleExpirationDate: getFieldWithNullableValue(record, field.VEHICLE_EXPIRATION_DATE),
+        violationLocation: getFieldWithNullableValue(record, field.VIOLATION_LOCATION),
+        violationPrecinct: getFieldWithNullableValue(record, field.VIOLATION_PRECINCT),
+        issuerPrecinct: getFieldWithNullableValue(record, field.ISSUER_PRECINCT),
+        issuerCode: getFieldWithNullableValue(record, field.ISSUER_CODE),
+        issuerCommand: getFieldWithNullableValue(record, field.ISSUER_COMMAND),
+        issuerSquad: getFieldWithNullableValue(record, field.ISSUER_SQUAD),
+        violationTime: getFieldWithNullableValue(record, field.VIOLATION_TIME),
+        timeFirstObserved: getFieldWithNullableValue(record, field.TIME_FIRST_OBSERVED),
+        violationCounty: record[field.VIOLATION_COUNTY],
+        violationInFrontOrOpposite: getFrontOfOpposite(getFieldWithNullableValue(record, field.VIOLATION_IN_FRONT_OR_OPPOSITE)),
+        houseNumber: getFieldWithNullableValue(record, field.HOUSE_NUMBER),
+        streetName: getFieldWithNullableValue(record, field.STREET_NAME),
+        streetIntersecting: getFieldWithNullableValue(record, field.STREET_INTERSECTING),
+        dateFirstObserved: getFieldWithNullableValue(record, field.DATE_FIRST_OBSERVED),
+        lawSection: record[field.LAW_SECTION],
+        subDivision: record[field.LAW_SUB_DIVISION],
+        violationLegalCode: record[field.VIOLATION_LEGAL_CODE],
+        daysParkingInEffect: getFieldWithNullableValue(field.DAYS_PARKING_IN_EFFECT),
+        fromHoursInEffect: getFieldWithNullableValue(record, field.FROM_HOURS_IN_EFFECT),
+        toHoursInEffect: getFieldWithNullableValue(record, field.TO_HOURS_IN_EFFECT),
+        vehicleColor: record[field.VEHICLE_COLOR],
+        vehicleUnregistered: getFieldWithNullableValue(record, field.VEHICLE_UNREGISTERED),
+        vehicleYear: Number(record[field.VEHICLE_YEAR]),
+        meterNumber: getFieldWithNullableValue(record, field.METER_NUMBER),
+        feetFromCurb: Number(record[field.FEET_FROM_CURB]),
+        violationPostCode: getFieldWithNullableValue(record, field.VIOLATION_POST_CODE),
+        violationDescription: record[field.VIOLATION_DESCRIPTION],
+        violationNoStandingOrStopping: getFieldWithNullableValue(record, field.VIOLATION_NO_STANDING_OR_STOPPING),
+        violationHydrant: getFieldWithNullableValue(record, field.VIOLATION_HYDRANT),
+        violationDoubleParking: getFieldWithNullableValue(record, field.VIOLATION_DOUBLE_PARKING)
+      };
+
+      this.push(data);
+      callback();
+    }))
+    .pipe(through2.obj(function (data, enc, callback) {
+      const self = this;
+      Promise.all([
+        data,
+        service.getOrCreateStreet(data.streetName),
+        service.getOrCreateStreet(data.streetIntersecting),
+        service.getOrCreatePlate(data.plate),
+        service.getOrCreateVehicleBodyType(data.vehicleBodyType),
+        service.getOrCreateVehicleMake(data.vehicleMake),
+        service.getOrCreateVehicleColor(data.vehicleColor),
+        service.getOrCreateCounty(data.violationCounty)
+      ]).spread((d, street_name_id, street_intersecting_id, plate_id, vehicle_body_type_id, vehicle_make_id, vehicle_color_id, violation_county_id) => {
+        const model = {
+          summons_number: d.summonsNumber,
+          plate_id,
+          issue_date: d.issueDate,
+          violation_code: d.violationCode,
+          vehicle_body_type_id,
+          vehicle_make_id,
+          issuing_agency: d.issuingAgency,
+          street_code_1: d.streetCode1,
+          street_code_2: d.streetCode2,
+          street_code_3: d.streetCode3,
+          vehicle_expiration_date: d.vehicleExpirationDate,
+          violation_location: d.violationLocation,
+          violation_precinct: d.violationPrecinct,
+          issuer_precinct: d.issuerPrecinct,
+          issuer_code: d.issuerCode,
+          issuer_command: d.issuerCommand,
+          issuer_squad: d.issuerSquad,
+          violation_time: d.violationTime,
+          time_first_observed: d.timeFirstObserved,
+          violation_county_id,
+          violation_in_front_or_opposit: d.violationInFrontOrOpposite,
+          house_number: d.houseNumber,
+          street_name_id,
+          street_intersecting_id,
+          date_first_observed: d.dateFirstObserved,
+          law_section: d.lawSection,
+          law_sub_division: d.subDivision,
+          violation_legal_code: d.violationLegalCode,
+          days_parking_in_effect: null,
+          from_hours_in_effect: d.fromHoursInEffect,
+          to_hours_in_effect: d.toHoursInEffect,
+          vehicle_color_id,
+          vehicle_unregistered: d.vehicleUnregistered,
+          vehicle_year: d.vehicleYear,
+          meter_number: d.meterNumber,
+          feet_from_curb: d.feetFromCurb,
+          violation_post_code: d.violationPostCode,
+          violation_description: d.violationDescription,
+          violation_no_standing_or_stopping: d.violationNoStandingOrStopping,
+          violation_hydrant: d.violationHydrant,
+          violation_double_parking: d.violationDoubleParking
+        };
+        service.createTicket(model)
+          .then((id) => {
+            self.push(id.toString());
+            callback();
+          }).catch(callback);
+      });
+    }))
+    .pipe(process.stdout);
 }
