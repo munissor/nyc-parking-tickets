@@ -1,0 +1,8 @@
+{
+    "db": {
+        "host": "localhost",
+        "user": "nyc",
+        "password": "nycpwd",
+        "database": "nyc"
+    }
+}
