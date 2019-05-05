@@ -1,0 +1,34 @@
+version: '3.2'
+services:
+
+  ## Node api
+  backend:
+    build:
+      context: ./
+    environment:
+      NODE_ENV: docker
+    depends_on:
+      - sql
+      - memcache
+    ports:
+      - 3000:3000
+
+  ## Mysql container for storage
+  sql:
+    image: mysql:5.7
+    restart: unless-stopped
+    environment:
+      ## These should equal the same credentials as used on the first container
+      MYSQL_ROOT_PASSWORD: badrootpass
+      MYSQL_DATABASE: nyc
+      MYSQL_USER: nyc
+      MYSQL_PASSWORD: nycpwd
+    ports:
+      - 3306:3306
+
+  ## Memcached container for caching
+  memcache:
+    image: memcached
+    restart: unless-stopped
+    ports:
+      - 11211:11211
