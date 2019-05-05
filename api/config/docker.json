@@ -1,0 +1,11 @@
+{
+    "db": {
+        "host": "sql",
+        "user": "nyc",
+        "password": "nycpwd",
+        "database": "nyc"
+    },
+    "cache": {
+        "host": "memcache:11211"
+    }
+}

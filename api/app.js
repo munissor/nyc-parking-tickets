@@ -5,11 +5,17 @@ const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const db = require('./clients/db');
 const app = express();
 const index = require('./routes/index');
 const lookup = require('./routes/lookup');
 const plate = require('./routes/plate');
 const ticket = require('./routes/ticket');
+
+db.migrate.latest()
+  .then(() => {
+    // migrations are finished
+  });
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
