@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 const app = express();
 const index = require('./routes/index');
 const lookup = require('./routes/lookup');
+const plate = require('./routes/plate');
+const ticket = require('./routes/ticket');
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -22,6 +24,8 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/', lookup);
+app.use('/api/', plate);
+app.use('/api/', ticket);
 app.use('/', index);
 
 // catch 404 and forward to error handler

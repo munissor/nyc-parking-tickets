@@ -9,6 +9,7 @@ function toDbModel(model, fields) {
   fields.forEach((f) => {
     dbModel[f] = model[f];
   });
+  return dbModel;
 }
 
 module.exports = {

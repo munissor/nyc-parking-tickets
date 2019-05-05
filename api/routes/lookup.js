@@ -4,7 +4,15 @@ const express = require('express');
 const asyncHandler = require('express-async-handler');
 const router = express.Router();
 const LookupController = require('../controllers/lookup');
-const lookups = [{ table: 'county' }];
+const lookups = [
+  { table: 'county' },
+  { table: 'plate_type', path: 'platetype' },
+  { table: 'vehicle_make', path: 'vehicle/make' },
+  { table: 'vehicle_body_type', path: 'vehicle/bodytype' },
+  { table: 'vehicle_color', path: 'vehicle/color' },
+  { table: 'us_state', path: 'state' },
+  { table: 'nyc_street', path: 'street' }
+];
 
 lookups.forEach((l) => {
   const controller = new LookupController(l.table);

@@ -1,51 +1,22 @@
 'use strict';
 
 const LookupRepository = require('../repositories/lookup');
-const cache = require('../clients/cache');
+const BaseService = require('./base');
 
-class LookupService {
+class LookupService extends BaseService {
   constructor(table) {
-    this.repository = new LookupRepository(table);
-  }
-
-  key(id) {
-    return `nyc-tickets-${this.table}-${id}`;
-  }
-
-  async invalidateCache(id) {
-    try {
-      cache.del(this.key(id));
-    }
-    // eslint-disable-next-line no-empty
-    catch (e) { }
-  }
-
-  async fromCache(id) {
-    try {
-      return cache.get(this.key(id));
-    }
-    // eslint-disable-next-line no-empty
-    catch (e) { }
-    return null;
-  }
-
-  async setCache(id, model) {
-    try {
-      return cache.set(this.key(id), model);
-    }
-    // eslint-disable-next-line no-empty
-    catch (e) { }
-    return null;
+    super();
+    this.repository = new LookupRepository(table, ['name']);
   }
 
   async get(id) {
-    let item = await this.fromCache(id);
+    let item = await BaseService.fromCache(this.repository.table, id);
 
     if (!item) {
-      item = await this.repository.get(id);
+      item = await this.repository.getById(id);
 
       if (item) {
-        await this.setCache(id, item);
+        await BaseService.setCache(this.repository.table, id, item);
       }
     }
     return item;
@@ -56,17 +27,17 @@ class LookupService {
   }
 
   async put(id, model) {
-    await this.invalidateCache(id);
+    await BaseService.invalidateCache(this.repository.table, id);
     return this.repository.put(id, model);
   }
 
   async patch(id, model) {
-    await this.invalidateCache(id);
+    await BaseService.invalidateCache(this.repository.table, id);
     return this.repository.patch(id, model);
   }
 
   async del(id) {
-    await this.invalidateCache(id);
+    await BaseService.invalidateCache(this.repository.table, id);
     return this.repository.del(id);
   }
 }
