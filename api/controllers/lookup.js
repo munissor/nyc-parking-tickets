@@ -5,19 +5,19 @@ const LookupService = require('../services/lookup');
 
 class LookupController {
   constructor(table) {
-    this.repository = new LookupService(table);
+    this.service = new LookupService(table);
   }
 
   async get(req, res) {
-    const id = parseInt(req.param.id);
+    const id = parseInt(req.params.id);
     if (id) {
       try {
-        const item = await this.repository.get(id);
+        const item = await this.service.get(id);
         if (!item) {
           res.status(status.NOT_FOUND).send();
         }
         else {
-          res.status(status.FOUND).send();
+          res.status(status.FOUND).send(item);
         }
       }
       catch (e) {
@@ -33,7 +33,7 @@ class LookupController {
     const model = req.body;
     if (model) {
       try {
-        const id = await this.repository.post(model);
+        const id = await this.service.post(model);
         res.status(status.CREATED).send(id);
       }
       catch (e) {
@@ -47,10 +47,10 @@ class LookupController {
 
   async put(req, res) {
     const model = req.body;
-    const id = parseInt(req.param.id);
+    const id = parseInt(req.params.id);
     if (id && model) {
       try {
-        await this.repository.put(id, model);
+        await this.service.put(id, model);
         res.status(status.NO_CONTENT).send();
       }
       catch (e) {
@@ -64,10 +64,10 @@ class LookupController {
 
   async patch(req, res) {
     const model = req.body;
-    const id = parseInt(req.param.id);
+    const id = parseInt(req.params.id);
     if (id && model) {
       try {
-        await this.repository.patch(id, model);
+        await this.service.patch(id, model);
         res.status(status.NO_CONTENT).send();
       }
       catch (e) {
@@ -80,10 +80,10 @@ class LookupController {
   }
 
   async del(req, res) {
-    const id = parseInt(req.param.id);
+    const id = parseInt(req.params.id);
     if (id) {
       try {
-        await this.repository.del(id);
+        await this.service.del(id);
         res.status(status.NO_CONTENT).send();
       }
       catch (e) {

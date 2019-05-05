@@ -9,7 +9,8 @@ class LookupRepository {
   }
 
   async get(id) {
-    return db.select('id', 'name').from(this.table).where('id', id);
+    const results = await db.select('id', 'name').from(this.table).where('id', id);
+    return results[0];
   }
 
   async post(model) {

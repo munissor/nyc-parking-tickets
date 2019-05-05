@@ -8,14 +8,15 @@ const TTL = 600;
 
 function promisify(context, fn, args) {
   return new Promise((resolve, reject) => {
-    fn.call(context, ...args, (err, data) => {
+    const a = [...args, (err, data) => {
       if (err) {
         reject(err);
       }
       else {
         resolve(data);
       }
-    });
+    }];
+    fn.apply(context, a);
   });
 }
 

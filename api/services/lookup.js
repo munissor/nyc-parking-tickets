@@ -22,7 +22,16 @@ class LookupService {
 
   async fromCache(id) {
     try {
-      return await cache.get(this.key(id));
+      return cache.get(this.key(id));
+    }
+    // eslint-disable-next-line no-empty
+    catch (e) { }
+    return null;
+  }
+
+  async setCache(id, model) {
+    try {
+      return cache.set(this.key(id), model);
     }
     // eslint-disable-next-line no-empty
     catch (e) { }
@@ -30,9 +39,14 @@ class LookupService {
   }
 
   async get(id) {
-    const item = await this.fromCache(id);
+    let item = await this.fromCache(id);
+
     if (!item) {
-      return this.repository.get(id);
+      item = await this.repository.get(id);
+
+      if (item) {
+        await this.setCache(id, item);
+      }
     }
     return item;
   }

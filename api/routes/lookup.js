@@ -10,10 +10,12 @@ lookups.forEach((l) => {
   const controller = new LookupController(l.table);
   const path = l.path || l.table;
 
-  router.get(`/${path}/:id`, asyncHandler(controller.get));
-  router.post(`/${path}/`, asyncHandler(controller.post));
-  router.put(`/${path}/:id`, asyncHandler(controller.put));
-  router.patch(`/${path}/:id`, asyncHandler(controller.patch));
-  router.delete(`/${path}/:id`, asyncHandler(controller.del));
+  router.get(`/${path}/:id`, asyncHandler(controller.get.bind(controller)));
+  router.post(`/${path}/`, asyncHandler(controller.post.bind(controller)));
+  router.put(`/${path}/:id`, asyncHandler(controller.put.bind(controller)));
+  router.patch(`/${path}/:id`, asyncHandler(controller.patch.bind(controller)));
+  router.delete(`/${path}/:id`, asyncHandler(controller.del.bind(controller)));
 });
+
+module.exports = router;
 
