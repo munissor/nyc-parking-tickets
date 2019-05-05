@@ -12,5 +12,6 @@ function toDbModel(model, fields) {
 }
 
 module.exports = {
-  isIncomplete
+  isIncomplete,
+  toDbModel
 };

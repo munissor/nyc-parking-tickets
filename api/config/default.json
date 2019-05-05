@@ -1,0 +1,11 @@
+{
+    "db": {
+        "host": "localhost",
+        "user": "nyc",
+        "password": "nycpwd",
+        "database": "nyc"
+    },
+    "cache": {
+        "host": "127.0.0.1:11211"
+    }
+}
