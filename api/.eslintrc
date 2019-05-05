@@ -1,0 +1,138 @@
+{
+    "parserOptions": {
+        "ecmaVersion": 2017,
+        "sourceType": "script"
+    },
+    "env": {
+        "es6": true,
+        "node": true
+    },
+    "extends": "airbnb-base",
+    "rules": {
+        "arrow-parens": [
+            "error",
+            "always"
+        ],
+        "brace-style": [
+            "error",
+            "stroustrup"
+        ],
+        "comma-dangle": [
+            "error",
+            "never"
+        ],
+        "consistent-return": "off",
+        "func-names": "off",
+        "guard-for-in": [
+            "warn"
+        ],
+        "import/newline-after-import": "off",
+        "indent": [
+            "error",
+            2,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "max-len": [
+            "error",
+            200
+        ],
+        "new-cap": "off",
+        "no-multiple-empty-lines": [
+            "error",
+            {
+                "max": 1,
+                "maxEOF": 1
+            }
+        ],
+        "no-param-reassign": [
+            "error",
+            {
+                "props": false
+            }
+        ],
+        "no-plusplus": "off",
+        "no-underscore-dangle": [
+            "off"
+        ],
+        "no-use-before-define": [
+            "error",
+            {
+                "functions": false
+            }
+        ],
+        "object-shorthand": [
+            "off"
+        ],
+        "padding-line-between-statements": [
+            "error",
+            {
+                "blankLine": "always",
+                "prev": "block",
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": "function",
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": "block",
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": "cjs-export",
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": [
+                    "*"
+                ],
+                "next": "cjs-export"
+            },
+            {
+                "blankLine": "always",
+                "prev": "for",
+                "next": "*"
+            },
+            {
+                "blankLine": "always",
+                "prev": "expression",
+                "next": "if"
+            },
+            {
+                "blankLine": "always",
+                "prev": "cjs-import",
+                "next": "*"
+            },
+            {
+                "blankLine": "never",
+                "prev": "cjs-import",
+                "next": [
+                    "const",
+                    "let",
+                    "var"
+                ]
+            },
+            {
+                "blankLine": "never",
+                "prev": [
+                    "const",
+                    "let",
+                    "var"
+                ],
+                "next": "cjs-import"
+            }
+        ],
+        "prefer-destructuring": "off",
+        "radix": "off",
+        "strict": [
+            "error",
+            "global"
+        ]
+    }
+}
