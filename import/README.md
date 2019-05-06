@@ -1,3 +1,6 @@
-Imports the dataset into the database
+## Imports the dataset into the database
+## Load dependencies
+npm install
 
-Usage ./import [file]
+### Usage
+./import [file]
