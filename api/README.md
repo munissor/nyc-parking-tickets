@@ -45,7 +45,6 @@ I added an hystrix circuit breaker implementation for memcached (it's quite gene
 The dashboard is available at  http://localhost:9090
 
 When adding the backend stream (http://backend:3000/hystrix) should show a dashboard similar to [this](https://user-images.githubusercontent.com/1422437/57228381-96e43480-700b-11e9-8e8b-4d1068bfa2a0.png)
-*Note: I've actually disabled this as I was getting issues and I'm running out of time for troubleshooting*
 
 ### Deployment
 The `kubernetes` folder contains all the kubernetes files for a complete deployment to Kubernetes.
