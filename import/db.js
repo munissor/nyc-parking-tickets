@@ -10,6 +10,7 @@ const db = knex({
     password: config.db.password,
     database: config.db.database
   },
+  pool: { min: 1, max: 1 },
   debug: false
 });
 
@@ -26,7 +27,7 @@ async function getLookupItem(table, key, keyName) {
 }
 
 async function putLookupItem(table, key) {
-  return db(table).returning('id').insert({ name: key });
+  return db(table).insert({ name: key });
 }
 
 async function getStreet(name) {
@@ -90,11 +91,27 @@ async function getPlate(number) {
 }
 
 async function putPlate(plate) {
-  return db('plate').returning('id').insert({ plate: plate.number, type_id: plate.typeId, registration_state_id: plate.stateId });
+  return db('plate').insert({ plate: plate.number, type_id: plate.typeId, registration_state_id: plate.stateId });
 }
 
-async function putTicket(ticket) {
-  return db('ticket').returning('id').insert(ticket);
+function putPlates(plates) {
+  return new Promise((resolve, reject) => {
+    db.transaction((trx) => {
+      trx('plate')
+        .insert(plates)
+        .then((r) => {
+          trx.commit();
+          resolve(r);
+        }).catch((e) => {
+          trx.rollback();
+          reject(e);
+        });
+    });
+  });
+}
+
+async function putTickets(tickets) {
+  return db('ticket').insert(tickets);
 }
 
 async function getTicket(number) {
@@ -110,6 +127,7 @@ module.exports = {
   putState,
   getPlate,
   putPlate,
+  putPlates,
   getVehicleBodyType,
   putVehicleBodyType,
   getVehicleMake,
@@ -119,5 +137,5 @@ module.exports = {
   getCounty,
   putCounty,
   getTicket,
-  putTicket
+  putTickets
 };

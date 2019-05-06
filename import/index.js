@@ -89,6 +89,9 @@ else {
   // eslint-disable-next-line no-console
   console.log(`Importing ${file}`);
 
+  let batch = [];
+  const BATCH_SIZE = 1000;
+
   fs.createReadStream(file)
     .pipe(csv2())
     .pipe(through2.obj(function (record, enc, callback) {
@@ -150,15 +153,24 @@ else {
         data,
         service.getOrCreateStreet(data.streetName),
         service.getOrCreateStreet(data.streetIntersecting),
-        service.getOrCreatePlate(data.plate),
+        service.getPlate(data.plate.number),
+        service.getOrCreateState(data.plate.registrationState),
+        service.getOrCreatePlateType(data.plate.type),
         service.getOrCreateVehicleBodyType(data.vehicleBodyType),
         service.getOrCreateVehicleMake(data.vehicleMake),
         service.getOrCreateVehicleColor(data.vehicleColor),
         service.getOrCreateCounty(data.violationCounty)
-      ]).spread((d, street_name_id, street_intersecting_id, plate_id, vehicle_body_type_id, vehicle_make_id, vehicle_color_id, violation_county_id) => {
+      ]).spread((d, street_name_id, street_intersecting_id, plate, registration_state_id, plate_type_id, vehicle_body_type_id, vehicle_make_id, vehicle_color_id, violation_county_id) => {
+        const p = {
+          _model: plate,
+          number: d.plate.number,
+          plate_type_id,
+          registration_state_id
+        };
+
         const model = {
           summons_number: d.summonsNumber,
-          plate_id,
+          plate: p,
           issue_date: d.issueDate,
           violation_code: d.violationCode,
           vehicle_body_type_id,
@@ -199,12 +211,75 @@ else {
           violation_hydrant: d.violationHydrant,
           violation_double_parking: d.violationDoubleParking
         };
-        service.createTicket(model)
-          .then((id) => {
-            self.push(id.toString());
-            callback();
-          }).catch(callback);
+
+        if (batch.length < BATCH_SIZE) {
+          batch.push(model);
+        }
+        else {
+          self.push(batch);
+          batch = [];
+        }
+        callback();
       });
+    },
+      (flush) => {
+        this.push(batch);
+        flush();
+      }))
+    .pipe(through2.obj((list, enc, callback) => {
+      const uniquePlates = {};
+
+      list.filter((v) => v.plate._model === null).forEach((i) => {
+        const plateNumber = i.plate.number;
+        if (uniquePlates[plateNumber]) {
+          uniquePlates[plateNumber].tickets.push(i);
+        }
+        else {
+          const t = {
+            tickets: [i],
+            plate: {
+              plate: i.plate.number,
+              type_id: i.plate.plate_type_id,
+              registration_state_id: i.plate.registration_state_id
+            }
+          };
+          uniquePlates[plateNumber] = t;
+        }
+      });
+
+      list.filter((v) => v.plate._model !== null).forEach((i) => {
+        i.plate_id = i.plate._model;
+        delete i.plate;
+      });
+
+      const tickets = [];
+      const plates = [];
+      Object.keys(uniquePlates).forEach((k) => {
+        tickets.push(uniquePlates[k].tickets);
+        plates.push(uniquePlates[k].plate);
+      });
+
+      service.createPlates(plates)
+        .then(() => {
+          const promises = plates.map((p) => service.getPlate(p.plate));
+          return Promise.all(promises);
+        })
+        .then((plt) => {
+          tickets.forEach((t, index) => {
+            t.forEach((i) => {
+              i.plate_id = plt[index];
+              delete i.plate;
+            });
+          });
+          return service.createTickets(list);
+        })
+        .then()
+        .catch((err) => {
+          console.log(list);
+          console.log(ticket);
+          console.log(plates);
+        })
+        .finally(callback);
     }))
     .pipe(process.stdout);
 }

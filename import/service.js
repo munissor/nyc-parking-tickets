@@ -186,6 +186,7 @@ async function getPlate(key) {
   let id = plateCache[key];
   if (!id) {
     id = await db.getPlate(key);
+    plateCache[key] = id;
   }
   return id;
 }
@@ -212,8 +213,12 @@ async function getOrCreatePlate(plate) {
   return id;
 }
 
-async function createTicket(ticket) {
-  return db.putTicket(ticket);
+async function createPlates(plates) {
+  return db.putPlates(plates);
+}
+
+async function createTickets(tickets) {
+  return db.putTickets(tickets);
 }
 
 async function getTicket(ticket) {
@@ -223,10 +228,15 @@ async function getTicket(ticket) {
 module.exports = {
   getOrCreateStreet,
   getOrCreatePlate,
+  getPlate,
+  putPlate,
+  createPlates,
+  getOrCreatePlateType,
+  getOrCreateState,
   getOrCreateVehicleBodyType,
   getOrCreateVehicleMake,
   getOrCreateVehicleColor,
   getOrCreateCounty,
-  createTicket,
+  createTickets,
   getTicket
 };
