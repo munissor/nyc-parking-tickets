@@ -7,5 +7,12 @@
     },
     "cache": {
         "host": "127.0.0.1:11211"
+    },
+    "hystrix": {
+        "cache": {
+            "defaults": {
+                "executionTimeoutInMilliseconds": 200
+            }
+        }
     }
 }

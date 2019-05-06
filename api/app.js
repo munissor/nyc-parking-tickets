@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const db = require('./clients/db');
 const app = express();
+const hystrix = require('./clientsWrappers/hystrix');
 const index = require('./routes/index');
 const lookup = require('./routes/lookup');
 const plate = require('./routes/plate');
@@ -29,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/hystrix', hystrix.buildStreamController());
 app.use('/api/', lookup);
 app.use('/api/', plate);
 app.use('/api/', ticket);

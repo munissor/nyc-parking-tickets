@@ -12,13 +12,18 @@ services:
       - memcache
     ports:
       - 3000:3000
-
+  dashboard:
+    image: synoa/docker-hystrix-dashboard:latest
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - 9090:9090
   ## Mysql container for storage
   sql:
     image: mysql:5.7
     restart: unless-stopped
     environment:
-      ## These should equal the same credentials as used on the first container
       MYSQL_ROOT_PASSWORD: badrootpass
       MYSQL_DATABASE: nyc
       MYSQL_USER: nyc
