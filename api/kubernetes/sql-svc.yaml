@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sql-svc
+  namespace: nyc-tickets-api
+  labels:
+    name: sql-svc
+spec:
+  type: NodePort
+  ports:
+  - name: sql-main
+    protocol: TCP
+    port: 3306   
+    nodePort: 31010
+  selector:
+    status: sql-active

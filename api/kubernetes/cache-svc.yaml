@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-svc
+  namespace: nyc-tickets-api
+  labels:
+    name: cache-svc
+spec:
+  type: NodePort
+  ports:
+  - name: cache-main
+    protocol: TCP
+    port: 11211   
+    nodePort: 31011
+  selector:
+    status: cache-active

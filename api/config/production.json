@@ -1,0 +1,11 @@
+{
+    "db": {
+        "host": "sql-svc",
+        "user": "nyc",
+        "password": "nycpwd",
+        "database": "nyc"
+    },
+    "cache": {
+        "host": "cache-svc"
+    }
+}

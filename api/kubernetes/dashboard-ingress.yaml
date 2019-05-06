@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: nyc-tickets-api
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - host: nyc-api-dashboard.munisso.com
+    http:
+      paths:
+      - backend:
+          serviceName: dashboard-svc
+          servicePort: dashboard-main

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: cache-rc
+  namespace: nyc-tickets-api
+  labels:
+    name: cache-rc
+spec:
+  replicas: 1
+  selector:
+    name: cache-pod
+    deployment: cache-initial
+  template:
+    metadata:
+      labels:
+        name: cache-pod
+        deployment: cache-initial
+        status: cache-active
+    spec:
+      containers:
+      - name: master
+        image: memcached
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 11211
+        resources:
+          limits:
+            cpu: 100m
+            memory: 256Mi
