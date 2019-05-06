@@ -6,6 +6,6 @@
         "database": "nyc"
     },
     "cache": {
-        "host": "cache-svc"
+        "host": "cache-svc:11211"
     }
 }

@@ -1,7 +1,7 @@
 'use strict';
 
 const util = require('util');
-const cache = require('../clientsWrappers/cache');
+const cache = require('../clients/cache');
 const CACHE_KEY = 'nyc-tickets-%s-%s';
 
 class BaseService {
